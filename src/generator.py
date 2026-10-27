@@ -1,34 +1,37 @@
 import sys
 import random
 
+def show_help():
+    print("usage: program [keymax] [writeratio] [naccess] [seed]")
+
 def main():
-    random.seed(0xCAFEBABE) # every good story ...
-    
-    KEYMAX = 1000
-    WRITERATIO = 0.30
-    NACCESS = 10
-
     # set up vars
-    if len(sys.argv) >= 2:
-        if sys.argv[1].startswith("h"):
-            print("usage: program [keymax] [writeratio] [naccess]")
-            return
+    if len(sys.argv) != 5:
+        show_help()
+        return
     
-        KEYMAX = int(sys.argv[1])
-    if len(sys.argv) >= 3:
-        WRITERATIO = float(sys.argv[2])
-    if len(sys.argv) >= 4:
-        NACCESS = int(sys.argv[3])
+    if sys.argv[1].startswith("h"):
+        show_help()
+        return
+    
+    keymax = int(sys.argv[1])
+    writeratio = float(sys.argv[2])
+    naccess = int(sys.argv[3])
+    seed = int(sys.argv[4])
 
-    fill_len = len(str(KEYMAX))
-    for i in range(NACCESS):
-        key = random.randrange(KEYMAX)
+    random.seed(seed) # every good story ...
+
+    # prepare formatting
+    fill_len = len(str(keymax))
+    
+    for i in range(naccess):
+        key = random.randrange(keymax)
         skey = str(key).zfill(fill_len)
         
-        val = random.randrange(KEYMAX)
+        val = random.randrange(keymax)
         sval = str(val).zfill(fill_len)
         
-        if random.random() < WRITERATIO:
+        if random.random() < writeratio:
             print(f"WRITE \t{skey}\t{sval}")
         else:
             print(f"READ  \t{skey}\t---------")
