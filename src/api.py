@@ -1,27 +1,25 @@
-import cache
 
 class API:
     def __init__(self, cache):
         self.storage = {}
         self.cache = cache
 
-    def read(self, address):
+    def read(self, address, timestamp):
         """Returns a tuple (address, result, is_hit, is_valid)"""
         storage_result = self.storage.get(address, None)
-        cache_result = self.cache.read(address)
+        cache_result = self.cache.read(address, timestamp)
 
         result = cache_result
         is_hit = cache_result is not None
         is_valid = cache_result == storage_result
         
         if not is_hit:
-            self.cache.write(address, storage_result)
+            self.cache.write(address, timestamp, storage_result)
             result = storage_result
-
         return (address, result, is_hit, is_valid)
 
-    def write(self, address, data):
+    def write(self, address, timestamp, data):
         """Returns a tuple (address, written_data, ---, ---)"""
         self.storage[address] = data
-        self.cache.evict(address)
+        self.cache.evict(address, timestamp)
         return (address, data, None, None)
