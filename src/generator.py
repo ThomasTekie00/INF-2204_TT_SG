@@ -1,9 +1,8 @@
 import sys
 import random
 
+
 zipf_cache = {}
-
-
 # bounded selection of random variable based on zipfian distribution
 def zipf(max):
     d = zipf_cache.get(max, None)
@@ -16,13 +15,13 @@ def zipf(max):
     
     return random.choice(d)
 
-
 def show_help():
-    print("usage: program [keymax] [writeratio] [naccess] [seed]")
+    print("usage: program [keymax] [distribution] [writeratio] [naccess] [seed]")
+    print("distribution must be either 'random' or 'zipf'")
 
 def main():
     # set up vars
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         show_help()
         return
     
@@ -31,17 +30,27 @@ def main():
         return
     
     keymax = int(sys.argv[1])
-    writeratio = float(sys.argv[2])
-    naccess = int(sys.argv[3])
-    seed = int(sys.argv[4])
-    
-    random.seed(seed)
+    distribution = sys.argv[2]
+    writeratio = float(sys.argv[3])
+    naccess = int(sys.argv[4])
+    seed = int(sys.argv[5])
+
+    r_func = None
+    if distribution == "random":
+        r_func = random.randrange
+    elif distribution == "zipf":
+        r_func = zipf
+    else:
+        show_help()
+        return
+
+    random.seed(seed) # every good story ...
 
     # prepare formatting
     fill_len = len(str(keymax))
     
     for i in range(naccess):
-        key = zipf(keymax)
+        key = random.randrange(keymax)
         skey = str(key).zfill(fill_len)
         
         val = random.randrange(keymax)
