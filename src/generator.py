@@ -50,7 +50,7 @@ def main():
     fill_len = len(str(keymax))
     
     for i in range(naccess):
-        key = random.randrange(keymax)
+        key = r_func(keymax)
         skey = str(key).zfill(fill_len)
         
         val = random.randrange(keymax)
