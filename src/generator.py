@@ -1,15 +1,15 @@
 import sys
 import random
 
-
 zipf_cache = {}
 # bounded selection of random variable based on zipfian distribution
 def zipf(max):
     d = zipf_cache.get(max, None)
+
     if d is None:
         d = []
         for idx, value in enumerate(range(0, max)):
-            for _ in range(0, max - idx):
+            for _ in range(0, (max / (2 * (idx + 1)))):
                 d.append(value)
         zipf_cache[max] = d
     
