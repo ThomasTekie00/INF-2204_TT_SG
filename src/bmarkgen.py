@@ -1,4 +1,4 @@
-traces = 4
+traces = 8
 throughput = [10000, 1000000]
 ttl = [0.3, 30]
 strategy = ["ttl", "pushevict"]
