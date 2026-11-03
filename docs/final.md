@@ -11,3 +11,12 @@
 * n = 5 -> Total lines = 20 000 000 -> Warm up = 4 000 000 -> 20% of the line is warmup
 
 * n = 20 -> Total lines = 80 000 000 -> Warm up = 4 000 000 -> 5% of the wamrup
+
+# Runs
+* Traces: writeratio: 2, access multipliers: 2 and distributions: 2
+* 2 * 2 * 2 = 8 traces
+
+* Amount of runs per trace:
+* Every throughput gives 2 TTL runs and 1 Pushevict run and with 2 throughout values -> 2 * (2 + 1) = 6
+
+* Total runs: 8 * 6 = 48 runs

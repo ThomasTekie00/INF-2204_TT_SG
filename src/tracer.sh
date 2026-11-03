@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -o pipefail
+set -euo pipefail
 
 writeratio=(0.3 0.7)
 m=(5 20)
@@ -11,12 +11,16 @@ seed=1
 ttl=(0.3 30)
 tp=(10000 1000000)
 
+format="%-7s %-6s %-3s %-8s %-9s %-5s %-22s %s\n"
+printf "$format" TYPE WRITES N KEYS ACCESS SEED TRACE TIME
+
+
 for writes in "${writeratio[@]}"; do
     for n in "${m[@]}"; do
         for s in "${select[@]}"; do
             naccess=$((keymax * n))
             trace="trace_${s}_w${writes}_n${n}"
-            echo "$trace  naccess=$naccess  seed=$seed"
+            start=$SECONDS
             python3 generator.py $keymax $s $writes $naccess $seed > "$trace"
 
             for through in "${tp[@]}"; do
@@ -29,6 +33,9 @@ for writes in "${writeratio[@]}"; do
             done
 
             rm "$trace"
+            printf "$format" "$s" "$writes" "$n" "$keymax" "$naccess" "$seed" "$trace" "$((SECONDS - start))s"
         done
     done
 done
+
+python3 result_translate.py
