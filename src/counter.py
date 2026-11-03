@@ -24,9 +24,9 @@ def counter(trace, warmup=0):
     return hit_ratio, freshness
 
 
-#KPIs
+# Amount of lines that we are skipping (Keymax in tracer.sh)
 warmup = 4000000
 
 if __name__ == "__main__":
     hit_ratio, freshness = counter(sys.stdin, warmup)
-    print(hit_ratio, freshness)
+    print(f"{hit_ratio:.4f} {freshness:.4f}")
