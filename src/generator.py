@@ -1,19 +1,21 @@
 import sys
 import random
+import itertools
 
 zipf_cache = {}
-# bounded selection of random variable based on zipfian distribution
-def zipf(max):
-    d = zipf_cache.get(max, None)
+def zipf(max, s=1.0):
+    r = zipf_cache.get(max, None)
 
-    if d is None:
-        d = []
-        for idx, value in enumerate(range(0, max)):
-            for _ in range(0, (max / (2 * (idx + 1)))):
-                d.append(value)
-        zipf_cache[max] = d
-    
-    return random.choice(d)
+    if r is None:
+        a = [i for i in range(max+1)]
+        n = len(a)
+        w = [1.0 / ((i + 1) ** s) for i in range(n)]
+        w = list(itertools.accumulate(w))
+        zipf_cache[max] = (a,w)
+    else:
+        a, w = r[0], r[1]
+
+    return random.choices(a, cum_weights=w)[0]
 
 def show_help():
     print("usage: program [keymax] [distribution] [writeratio] [naccess] [seed]")
