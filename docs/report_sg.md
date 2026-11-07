@@ -73,39 +73,13 @@ reporting the status of each request as it occurs.
 
 ## Benchmarking
 
-
-
-# Methodology
-
-## Traces
-
-In order to generate access patterns two different approaches are used;
-
-**RANDOM:** we distribute our keys we wish to access inside a random distribution 
-where each key is equally likely given a range `[0..N]`.
-
-**ZIPFIAN:** we distribute the keys we wish to access inside a zipfian distribution 
-where each keys likelihood is givven as `(N / ((a+1) ^ s )) / N` for each `a` in the 
-range `[0..N]`. where s is a factor determining the curve for our distribution
-
-Each trace is generated with a limited number of "accesses", each access represents
-either a `GET` or a `SET` operation, we use the values `5 * N` and `20 * N` based on
-assumptions about our **RANDOM** distribution. for `5 * N` accesses we would 'touch'
-each key 5 times, the "first" touch of a key will function as a "warmup" of our cache
-system, that means in the `5 * N` case, we expect the first `1 / 5` or 20% of our
-activity to be targeting a "cold" or "unpopulated" cache. for the `20 * N` case
-this accounts for an assumed 5% of our run.
-
-Traces are set to touch `4,000,000` keys, Many VPS services such as linode/akamai
-and 
-
-
 # Results and discussion
 
 # Limitations
 * not representative of a real system
 * simulated runtime != real runtime on hardware
-* assumes 4,000,000 keys for 1gig system with 256 byte entries (not real)
+* limited key space to force reuse, real systems have larger key-sizes
+* assumes continous time, does not regard the fact that some requests take longer than others.
 * assume single threaded, does not regard concurrency
 
 # Conclusion
