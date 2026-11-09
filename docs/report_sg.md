@@ -67,11 +67,76 @@ with some cache implementation, and the experimental pipeline consists of constr
 a pregenerated access-pattern or trace, feed this into our simulation core, and then
 reporting the status of each request as it occurs.
 
+The entire experiment is a collection of generating traces, benchmarking each trace
+and generting the relevant reporting, before accumulating our ouputs, calculating our
+relevant metrics and presenting them in a final result table.
+
+![Experimental Procedure](media/experimental_procedure.png)
+
 ## Simulation Core
+
+Our simulation core represents an API receiving requests to either **read** or **write**
+(`GET` or `SET`) some data to a givven key. we assume that the core has arbitrary keyspace in the
+form of a givven integer numerical value. that is, any whole integer functions as a valid key,
+and the core simulation does not impose any restrictions on what number is or isnt a valid key, nor
+do we impose that there is a limited number of keys permissable.
+
+we provide the core with a **throughput rate** which is the number of requests it is assumed to simulate
+per seconde, every time our simulation processes a request it keeps track of the simulated time by incrementing
+a "timer", which is a floating number representing the number of seconds passed, this allows us to
+simulate any givven rate of throughput without regarding the real runtime of our simulation.
+
+the core reads an input file line by line, in the format `OPERATION KEY VALUE` and performs the givven operation,
+on a `SET` or write operation, it will inform the cache of eviction for the givven key, (eviction can be ignored, as is the case for TTL)
+before it writes the key to the underlying storage. On a `GET` or read operation, the api first asks the cache
+for the givven key, if the cache returns `None` indicating that the key was not found the storage is asked to retrieve
+the key, when a key is retrieved from storage it is also written into the cache, so that the cache can hold
+the relevant data next time the cache is asked for it.
+
+![Illustration of a cache miss](media/cache_miss.png)
+
+![Illustration of a cache hit](media/cache_hit.png)
+
+As shown in \[Figure 2] and \[Figure 3] we see that a cache hit fully avoids touching underlying
+storage. our simulation aims to "behave as if" this was the case, however for the purposes of reporting
+correctness it is important to note that we in reality compare the value in our cache with that of the underlying
+storage. this means; the behaviour we aim to represent through our simulation is not accurate to the behavior
+our simulation is performing. but the overall data-flow does in the general case show the equivalent properties
+with regards to what data is in the cache.
+
+**TTL Caching:** our simulation is ran using two caching strategies, in which one of these
+is the familiar TTL cache, in TTL Caching a cache entry is valid for a set duration and has some
+temporal state. when we execute a `GET` operation towards a TTL cache we also provide a simulated time.
+if a key is found we compare the current time according to our simulation with the expiration of the cache
+entry. If the cache entry has an expiration less then the simulated time we discard the entry and return a `None`
+value, indicating that the cache no longer has any data relevant to our key.
+
+in a `SET` operation our TTL cache enters data into the cache, alongside a timestamp for when this cache entry
+expires, which is defined to be the current simulation time pluss some lifteime indicating how long the cache
+is valid after entry. we previously mentioned that our API sends an `EVICT` request on write, the TTL Cache implements
+this method for polymorphism such that the API can be cache agnostic, but does not provide any functionality within
+the method. calling `EVICT` for some key on our TTL cache does in no way modify the state of the cache.
+
+**PUSH EVICT Caching:** Is our hard cohesion caching strategy. keys do not expire, and any passed variable relating to
+time is considered irrelevant for this strategy, instead it keeps all keys in cache until they are manually evicted by
+the API, which happens when the api executes a `SET` or write against the underlying storage.
 
 ## Trace Generation
 
-## Benchmarking
+In order to generate reproducible traces we precompute these from fixed seeds.
+from the github repository associated with our work a generator can be found in 
+`src/generator.py`. we accept two primary access patterns, a write-ratio givven as a floating point
+number in the range \[0..1], a maximum integer for valid keys, a specified number of accesses or requests to generate
+and a random seed to use for generation.
+
+our two access patterns or distributions are related to the distribution of keys. and can either be `RANDOM` or `ZIPF`.
+Random selects keys at random in the range \[0..KEYMAX] where each key has `1/KEYMAX` chance of beeing selected. Zipf
+follows a power-law distribution in which the chance for any key to be selected is by `w / tw` where w is the weight of a single key and tw
+is the total weight of all keys. further w is givven as `w(n) = 1/(n+1)` for each `n` in  \[0..KEYMAX], and `w(0) = 1`.
+
+![Relative weight of keys following the ZIPF distribution pattern](media/zipf.png)
+
+![Relative weight of keys following the RANDOM distribution pattern](media/random.png)
 
 # Results and discussion
 
@@ -85,5 +150,7 @@ reporting the status of each request as it occurs.
 # Conclusion
 
 # Sources
+
+* The reletad github repository is available at <https://github.com/ThomasTekie00/INF-2204_TT_SG>
 
 \[1] twemcached - twitter paper
