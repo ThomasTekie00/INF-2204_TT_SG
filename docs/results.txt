@@ -1,0 +1,61 @@
+
+Dist: Key distribution -> Random = uniform, zipf = a few popular keys
+Writes: write ratio, share of requests that are writes: 30% and 70%
+Keys: Number of distinct keys
+Strategy: PushEvict, writes evicts the key or TTL, the entry expires
+Window: TTL window in requests, throughput * TTL
+Hit: Amount of reads gotten from the cache
+Fresh: Amount of cache hits that are not stale(Old data)
+Useful: All of reads answered correctly from the cache: Hit * freshness
+    Pushevict will also have hitratio == usefulness 
+
+dist      writes    keys  strategy    window    hit     fresh    useful
+------  --------  ------  ----------  --------  ------  -------  --------
+random      0.30     100  PushEvict   -         70.0%   100.0%   70.0%
+                          TTL         250000    99.9%   1.1%     1.1%
+                          TTL         500000    100.0%  1.1%     1.1%
+                          TTL         1000000   100.0%  1.1%     1.1%
+random      0.30    1000  PushEvict   -         70.0%   100.0%   70.0%
+                          TTL         250000    99.4%   1.4%     1.4%
+                          TTL         500000    99.7%   0.8%     0.8%
+                          TTL         1000000   99.9%   0.4%     0.4%
+random      0.30   10000  PushEvict   -         69.3%   100.0%   69.3%
+                          TTL         250000    94.3%   14.1%    13.3%
+                          TTL         500000    97.1%   6.9%     6.7%
+                          TTL         1000000   98.6%   3.4%     3.3%
+random      0.70     100  PushEvict   -         29.9%   100.0%   29.9%
+                          TTL         250000    99.9%   1.1%     1.1%
+                          TTL         500000    99.9%   1.0%     1.0%
+                          TTL         1000000   100.0%  1.0%     1.0%
+random      0.70    1000  PushEvict   -         30.0%   100.0%   30.0%
+                          TTL         250000    98.7%   0.7%     0.7%
+                          TTL         500000    99.3%   0.4%     0.4%
+                          TTL         1000000   99.7%   0.2%     0.2%
+random      0.70   10000  PushEvict   -         29.6%   100.0%   29.6%
+                          TTL         250000    86.8%   6.4%     5.6%
+                          TTL         500000    93.3%   3.0%     2.8%
+                          TTL         1000000   96.7%   1.4%     1.4%
+zipf        0.30     100  PushEvict   -         70.0%   100.0%   70.0%
+                          TTL         250000    99.9%   1.1%     1.1%
+                          TTL         500000    100.0%  1.0%     1.0%
+                          TTL         1000000   100.0%  1.0%     1.0%
+zipf        0.30    1000  PushEvict   -         69.9%   100.0%   69.9%
+                          TTL         250000    99.4%   1.4%     1.4%
+                          TTL         500000    99.7%   0.7%     0.7%
+                          TTL         1000000   99.9%   0.4%     0.4%
+zipf        0.30   10000  PushEvict   -         69.3%   100.0%   69.3%
+                          TTL         250000    95.1%   9.0%     8.6%
+                          TTL         500000    97.2%   5.9%     5.7%
+                          TTL         1000000   98.6%   3.3%     3.2%
+zipf        0.70     100  PushEvict   -         30.0%   100.0%   30.0%
+                          TTL         250000    99.9%   1.1%     1.1%
+                          TTL         500000    99.9%   1.1%     1.0%
+                          TTL         1000000   100.0%  1.0%     1.0%
+zipf        0.70    1000  PushEvict   -         29.9%   100.0%   29.9%
+                          TTL         250000    98.7%   0.7%     0.7%
+                          TTL         500000    99.3%   0.4%     0.4%
+                          TTL         1000000   99.7%   0.2%     0.2%
+zipf        0.70   10000  PushEvict   -         29.6%   100.0%   29.6%
+                          TTL         250000    90.8%   4.0%     3.6%
+                          TTL         500000    94.1%   2.6%     2.4%
+                          TTL         1000000   96.7%   1.5%     1.4%
