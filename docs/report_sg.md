@@ -138,19 +138,167 @@ is the total weight of all keys. further w is givven as `w(n) = 1/(n+1)` for eac
 
 ![Relative weight of keys following the RANDOM distribution pattern](media/random.png)
 
+# Limitations
+
+There are a handful of limiting factors the reduce the applicable scope of our work.
+While these factors dent necessarily decrease the merit of the overarching patterns
+we see given the context of our simulation, they are definitely factors worth
+considering both for future work and when attempting to translate the results into
+decisions regarding real world systems.
+
+## Real System impacts
+A real world implementation of server side in-memory caching as a service-accelerator \[2]
+could presumably run for periods of times in the order of months, with varying loads
+of traffic during this period. if that is the case our TTL example is no longer representative,
+our simulation assumes a continuous stream of requests in which the processing time is equal
+for every request regardless of a cache hit or a cache miss. further we have defined our
+configuration values for TTL lifetimes in regards to the total duration of our simulation.
+setting them at 25%, 50% and 100% respectively. These values help indicate a pattern
+of decreasing freshness as the TTL increases, but does not shed light on what happens
+with relatively short lifetimes in services. if for instance a cache entry was valid for 3 seconds
+in a cache system that ran for several months with "high traffic".
+
+## Simulated time
+Simulated time does not clearly and accurately represent real time, that is to say
+when evaluating the feasibility of a caching scheme such as PushEvict against TTL our
+measurements alone are not sufficient to state that one provides a clear benefit in terms
+of latency compared to the other. access-delay for underlying storage, and the time to
+read from and populate the cache, may differ across several services and these times must
+be accounted for in each individual case in order to gain a clear picture of what 
+the presented data means for any given system.
+
+## Keyspaces and "keymax"
+We use the term keymax to determine the largest allowed key, and state that all
+keys exist in the range `[0..KEYMAX]`. real world systems might provide other 
+mechanisms such as hashing to allow arbitrary keys, and could be bound by either a
+configuration-provided maximum capacity or utilize an entire systems available storage
+to provide lookups for given keys. that is to say the size of a systems storage and
+its underlying mechanism for determining how many entries it permits might differ
+drastically from our assumptions.
+
+## PushEviction and the promise of freshens
+We assume that requests are sequential and ordered, in particular this
+might be challenging our notion of freshness for the PushEvict strategy. 
+in particular that is the case for any system processing requests with some 
+degree of concurrency or parallelism. For example; if a service is available 
+over a network  the ordering of network requests might not be arriving in the 
+order they were sent. in this situation we could imagine a scenario where:
+
+```
+A sends a WRITE
+B sends a READ
+B gets a HIT
+A's write is committed and the cache is updated
+```
+
+in a sequence such as that above we can no longer claim that B receives a cache-value
+that reflects the latest issued write. from A's perspective, B received a hit with stale
+data. this could skew the meaning of "usefulness" in certain environments.
+
 # Results and discussion
 
-# Limitations
-* not representative of a real system
-* simulated runtime != real runtime on hardware
-* limited key space to force reuse, real systems have larger key-sizes
-* assumes continous time, does not regard the fact that some requests take longer than others.
-* assume single threaded, does not regard concurrency
+The results can be seen in the associated GitHub repository, under `docs/results.txt`
+or generated running the provided tracer `src/tracer.sh`.
+We assume that the reporting and summary of results might differ by a small margin 
+between different host systems as a result in variations
+regarding how the host running the simulation handles floating point arithmetic.
+From our results we notice some interesting key details that might be worth
+further study or consideration.
+
+## TTL lifetimes and keyspace
+* for limited keyspaces (`keymax = 100`), we see that our TTL cache has
+very similar performance when measured in percentage-points in terms of "usefulness".
+
+* for distirbutions favouring a smaller subset of keys following our power-law distribution
+(`zipf`) we notice a similar behavior as we do in the point above.
+
+* Looking at keyspaces of 10,000 keys we see that as our TTL duration increases, the freshness
+of a key decreases.
+
+* Comparing keyspaces of 10,000 keys for TTL caches between `random` and `zipf` distribution
+we notice that our summary shows a higher usefulness in the `random` case
+
+We assume that given the goal of optimizing for usefulness in a TTL caching system
+with a high (> 30%) write-ratio; it would be optimal to prioritize short lifetimes
+over a large subset of keys to reduce the number of READS of any given key, and the enable
+some mechanism that prevents any one key or subset of keys from being the concentrated
+target of READ operations.
+
+Or in other terms; a rapidly changing small set of data will be poorly represented 
+by a system utilizing time-invalidation for cohesion if we care about retrieving 
+the most recent data.
+
+## TTL as a means of reducing access delays
+* The worst hit-ratio for a TTL cache seems to be givven a `random` distribution
+with a 70% write-ratio over a space of 10,000 keys. and sits at ~86.8%
+
+* The best hit-ratio for a PushEvict cache seems to be givven a `random` or `zipf` distribution
+with a 30% write-ratio over 100 keys. and sits at ~70%
+
+* hit-ratios for TTL caches increase when the keyspace is dense or the accessed keys
+are clustered by a power-law distribution (`zipf`).
+
+* hit-ratios for TTL caches seem to increase in relation to the lifteime of the TTL
+cache entry.
+
+Given the above points we make the assumption that TTL caching is favourable if
+we care about reducing the overall delay to a service, provided that access-delays
+can be expressed as `(hit-ratio * cache-delay) + ((1 - hit-ratio) * storage-delay)`
+
+that is, if the cache-delay provides a significant benefit over accessing the underlying
+storage and we only care about our delay, a long-lived TTL entry is assumed to be optimal
+over the PushEvict strategy.
+
+## PushEviction and usefulness
+We note that usefulness for a PushEviction strategy will, givven the limitations
+of our simulation, be equivalent to its hit-ratio,
+
+* the hit-ratio and usefulness of a PushEvict strategy doest not show signs of 
+signifcant change as they keyspace changes
+
+* the hit-ratio and usefulness of a PushEvict strategy doest not show signs of 
+signifcant change as they pattern of access (`random` or `zipf`) changes.
+
+* the hit-ratio and usefulnes of a PushEvict strategy seems correlated to the 
+write-ratio of the underlying system
+
+* The usefulness of a push-evict system is in the worst case just below 30%.
+this is the case for a write-ratio of 0.7.
+
+* The best case usefulness for a TTL strategy is ~13.3% given a keyspace of 10,000,
+a write-ratio of 0.3 and a `random` access pattern with a window of 250,000.
+
+This indicates to us that while the PushEvict strategy is highly dependent on
+the write-ratio for a system, it will provide a higher degree of usefulness then
+a TTL caching strategy would, assuming we care about ensuring that our data aligns
+with the values present in underlying storage, further a 30% hit-ratio could
+provide some level of improvement in terms of access times given the previously
+stated formula of : `(hit-ratio * cache-delay) + ((1 - hit-ratio) * storage-delay)`
+if we assume that cache-delay is less than the storage-delay.
+
+## Further work
+It is assumed that we could increase the usefulness of a hard cohesion caching
+strategy further if we instead of PushEviction performed a PushWrite, in which
+we not evict the cache-data but instead overwrite it with the updated values to
+ensure that our cache is synchronized against our storage. This would be dependent
+on timing-factors that might be specific to a given system or subsets of systems.
 
 # Conclusion
+
+In this paper we discuss the implementation, experiments and results from simulating
+and comparing two different caching strategies in order to better outline the tradeoffs
+between hard and soft cohesion. we explain our metric of "usefulness" and showcase
+how it correlates not only to the cache-hit ratio but also to the data stored in cache
+and how it relates to the underlying storage.
+
+we discuss our results and evaluate systems in which either cohesion strategy is useful,
+and provide our source-code, including the simulator and experiments in a public GitHub
+repository.
+
 
 # Sources
 
 * The reletad github repository is available at <https://github.com/ThomasTekie00/INF-2204_TT_SG>
 
 \[1] twemcached - twitter paper
+\[2] jia weng - survey
