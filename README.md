@@ -77,7 +77,7 @@ result_transplate.py groups these by strategy and prints:
 |   writes      | write ratio, share of requests that are writes: 30% and 70%         |
 |  keys        |Number of distinct keys         |
 | strategy | PushEvict, writes evicts the key or TTL, the entry expires|
-| window | TL window in requests, throughput * TTL| 
+| window | TTL window in requests, throughput * TTL| 
 | hitratio |Amount of reads gotten from the cache |
 |freshness | Amount of cache hits that are not stale(Old data)| 
 |Usefulness | All of reads answered correctly from the cache: Hit * freshness Pushevict will also have hitratio == usefulness |
@@ -127,7 +127,7 @@ python3 benchmark.py trace <pushevict|ttl> <throughput> <ttl seconds> | python3 
 
 
 # Validating the benchmark
-small manual traces exist that trigger specific behaviour for a givven cache.
+small manual traces exist that trigger specific behaviour for a given cache.
 these are found in `manual_traces/*` and can be executed with any configuration
 
 invalid read -> cache hit but data is wrong
