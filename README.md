@@ -12,11 +12,11 @@ For each run we measure the hit ratio and the freshness
 | File          | Purpose |
 | ------------- | ------------- |
 | generator.py  | Writes a trace of READ/WRITE operations to stdout |
-| cache.py, api.py  |  |
-| benchmark.py |                     |
+| cache.py, api.py  | 	The TTL and PushEvict caches  |
+| benchmark.py | 	Runs a trace through a cache with a simulated clock and prints a log of every operation                    |
 | counter.py | Reads a benchmark log on stdin and prints hit_ratio, freshness|
 | tracer.sh  | Runs the whole experiment and appends the results to results.txt |
-| results_translate.py | Reads results.txt and prints the tabell |
+| result_translate.py | Reads results.txt and prints the tabell |
 
 
 ## Requirements
@@ -92,7 +92,7 @@ python3 src/benchmark.py [TRACEFILE] [ARGS] > file
 ```
 
 use `python3 src/benchmark.py h` for help with the remaining arguments.
-we recomend piping the output to a file for easier parsing.
+we recommend piping the output to a file for easier parsing.
 
 ### Running the trace generator
 
@@ -147,5 +147,5 @@ new write, missed read, and valid read.
 
 
 
-# Reproduceibility
+# Reproducibility
 * The simulation uses a simulated clock, not the wall clock so the same trace and the same settings will give the same result on any machine. The hardware only affects how long a runs takes.
