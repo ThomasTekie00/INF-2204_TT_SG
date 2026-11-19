@@ -6,7 +6,7 @@ class API:
 
     def read(self, address, timestamp):
         """Returns a tuple (address, result, is_hit, is_valid)"""
-        storage_result = self.storage.get(address, None)
+        storage_result = self.storage.get(address, address)
         cache_result = self.cache.read(address, timestamp)
 
         result = cache_result
