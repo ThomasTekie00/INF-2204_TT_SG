@@ -1,0 +1,98 @@
+
+Dist: Key distribution -> Random = uniform, zipf = a few popular keys
+Writes: write ratio, share of requests that are writes: 30% and 70%
+Keys: Number of distinct keys
+Seed: Seed used to generate the trace
+Strategy: NoCache, no cache is used. PushEvict, writes evicts the key or TTL, the entry expires
+Window: TTL window in requests, throughput * TTL
+Hit: Amount of reads gotten from the cache
+Fresh: Amount of cache hits that are not stale(Old data)
+Useful: All of reads answered correctly from the cache: Hit * freshness
+ Pushevict will also have hitratio == usefulness 
+
+dist      writes    keys       seed  strategy    window    hit     fresh    useful
+------  --------  ------  ---------  ----------  --------  ------  -------  --------
+random      0.30     100  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         70.0%   100.0%   70.0%
+                                     TTL         5000      97.2%   7.6%     7.4%
+                                     TTL         50000     99.7%   1.6%     1.6%
+                                     TTL         250000    99.9%   1.2%     1.2%
+                                     TTL         500000    100.0%  1.1%     1.1%
+                                     TTL         1000000   100.0%  1.0%     1.0%
+random      0.30    1000  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         70.0%   100.0%   70.0%
+                                     TTL         5000      77.8%   52.0%    40.4%
+                                     TTL         50000     97.1%   7.0%     6.8%
+                                     TTL         250000    99.4%   1.4%     1.4%
+                                     TTL         500000    99.7%   0.8%     0.8%
+                                     TTL         1000000   99.9%   0.4%     0.4%
+random      0.30   10000  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         69.3%   100.0%   69.3%
+                                     TTL         5000      25.8%   92.8%    24.0%
+                                     TTL         50000     77.3%   51.9%    40.2%
+                                     TTL         250000    94.3%   14.0%    13.2%
+                                     TTL         500000    97.1%   6.8%     6.6%
+                                     TTL         1000000   98.6%   3.3%     3.3%
+random      0.70     100  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         30.0%   100.0%   30.0%
+                                     TTL         5000      93.7%   3.8%     3.6%
+                                     TTL         50000     99.3%   1.3%     1.3%
+                                     TTL         250000    99.9%   1.1%     1.1%
+                                     TTL         500000    99.9%   1.1%     1.0%
+                                     TTL         1000000   100.0%  1.1%     1.0%
+random      0.70    1000  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         29.9%   100.0%   29.9%
+                                     TTL         5000      59.9%   27.8%    16.6%
+                                     TTL         50000     93.6%   3.0%     2.8%
+                                     TTL         250000    98.7%   0.7%     0.7%
+                                     TTL         500000    99.3%   0.4%     0.4%
+                                     TTL         1000000   99.7%   0.3%     0.3%
+random      0.70   10000  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         29.7%   100.0%   29.7%
+                                     TTL         5000      13.0%   84.4%    11.0%
+                                     TTL         50000     59.4%   28.0%    16.6%
+                                     TTL         250000    86.9%   6.4%     5.6%
+                                     TTL         500000    93.3%   3.0%     2.8%
+                                     TTL         1000000   96.7%   1.5%     1.4%
+zipf        0.30     100  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         70.0%   100.0%   70.0%
+                                     TTL         5000      97.3%   7.2%     7.0%
+                                     TTL         50000     99.7%   1.7%     1.7%
+                                     TTL         250000    99.9%   1.2%     1.2%
+                                     TTL         500000    100.0%  1.1%     1.1%
+                                     TTL         1000000   100.0%  1.1%     1.0%
+zipf        0.30    1000  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         69.8%   100.0%   69.8%
+                                     TTL         5000      84.7%   21.3%    18.1%
+                                     TTL         50000     97.3%   6.2%     6.0%
+                                     TTL         250000    99.4%   1.5%     1.5%
+                                     TTL         500000    99.7%   0.8%     0.8%
+                                     TTL         1000000   99.9%   0.5%     0.5%
+zipf        0.30   10000  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         69.2%   100.0%   69.2%
+                                     TTL         5000      65.6%   26.3%    17.3%
+                                     TTL         50000     86.2%   17.0%    14.6%
+                                     TTL         250000    95.1%   9.1%     8.7%
+                                     TTL         500000    97.2%   5.9%     5.8%
+                                     TTL         1000000   98.6%   3.3%     3.3%
+zipf        0.70     100  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         30.0%   100.0%   30.0%
+                                     TTL         5000      94.2%   3.6%     3.4%
+                                     TTL         50000     99.3%   1.3%     1.3%
+                                     TTL         250000    99.9%   1.1%     1.0%
+                                     TTL         500000    99.9%   1.0%     1.0%
+                                     TTL         1000000   100.0%  1.0%     1.0%
+zipf        0.70    1000  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         29.8%   100.0%   29.8%
+                                     TTL         5000      76.0%   10.3%    7.8%
+                                     TTL         50000     94.5%   2.7%     2.5%
+                                     TTL         250000    98.7%   0.7%     0.7%
+                                     TTL         500000    99.3%   0.4%     0.4%
+                                     TTL         1000000   99.7%   0.2%     0.2%
+zipf        0.70   10000  927367142  NoCache     -         0.0%    0.0%     0.0%
+                                     PushEvict   -         29.8%   100.0%   29.8%
+                                     TTL         5000      57.2%   13.1%    7.5%
+                                     TTL         50000     79.2%   8.0%     6.3%
+                                     TTL         250000    90.8%   4.0%     3.6%
+                                     TTL         500000    94.1%   2.5%     2.4%
+                                     TTL         1000000   96.7%   1.4%     1.4%
